@@ -22,14 +22,29 @@ jobs:
       - name: Install Chrome & ChromeDriver
         run: |
           sudo apt update
-          sudo apt install -y google-chrome-stable
+          sudo apt install -y wget unzip
+
+          # Install Google Chrome
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
           google-chrome --version
-          sudo apt install -y chromium-chromedriver
-          chromedriver --version
+
+          # Find the latest ChromeDriver version matching Chrome
+          CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+(\.[0-9]+)*' | head -1 | cut -d'.' -f1)
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           
-          # Check ChromeDriver location and set it in PATH
-          CHROMEDRIVER_PATH=$(which chromedriver)
-          echo "CHROMEDRIVER_PATH=${CHROMEDRIVER_PATH}" >> $GITHUB_ENV
+          # Download and install ChromeDriver
+          wget -N "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver-linux64.zip"
+          unzip chromedriver-linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
+
+          # Verify ChromeDriver version
+          chromedriver --version
+
+      - name: Set ChromeDriver Path
+        run: |
+          echo "CHROMEDRIVER_PATH=/usr/local/bin/chromedriver" >> $GITHUB_ENV
 
       - name: Run Selenium tests
         env:
