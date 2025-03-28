@@ -1,0 +1,32 @@
+name: Run Selenium Tests
+
+on:
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  selenium-tests:
+    runs-on: ubuntu-latest  # Run tests on Ubuntu
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Fetch latest code from repo
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Set desired Python version
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install Chrome & ChromeDriver
+        run: |
+          sudo apt update
+          sudo apt install -y google-chrome-stable
+          sudo apt install -y chromedriver
+          google-chrome --version
+          chromedriver --version
+
+      - name: Run Selenium tests
+        run: |
+          pytest -s -v tests/test_google.py
