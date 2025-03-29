@@ -8,13 +8,19 @@ def browser():
     """Setup Chrome WebDriver"""
     options = webdriver.ChromeOptions()
     
-    # Add necessary arguments for CI environment
-    options.add_argument("--headless")  # Run in headless mode
-    options.add_argument("--no-sandbox")  # Required for running in container
-    options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-    options.add_argument("--disable-gpu")  # Disable GPU hardware acceleration
-    options.add_argument("--window-size=1920,1080")  # Set window size
-    
+    # Only add headless mode and other CI-specific options when running in GitHub Actions
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        options.add_argument("--headless")  # Headless only in CI
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--window-size=1920,1080")
+    else:
+        # Options for local development with visible browser
+        options.add_argument("--start-maximized")  # Start with maximized window
+        options.add_argument("--disable-infobars")  # Disable info bars
+        options.add_argument("--disable-extensions")  # Disable extensions
+        
     # If running in GitHub Actions, use display
     if os.getenv("GITHUB_ACTIONS") == "true":
         options.add_argument("--display=:99")
