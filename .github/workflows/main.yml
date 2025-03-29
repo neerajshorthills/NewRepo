@@ -28,73 +28,39 @@ jobs:
           pip install -r requirements.txt
           pip install pytest-html  # For HTML report generation
 
-      - name: Install Chrome & ChromeDriver
-        run: |
-          echo "Starting Chrome and ChromeDriver installation..."
-          
-          # Update package list
-          sudo apt update
-          
-          # Install required packages
-          sudo apt install -y wget unzip xvfb
-          
-          # Install Google Chrome
-          echo "Downloading Chrome..."
-          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          
-          echo "Installing Chrome..."
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
-          
-          # Verify Chrome installation
-          echo "Verifying Chrome installation..."
-          google-chrome --version || echo "Chrome installation failed"
-          
-          # Extract Chrome major version
-          CHROME_VERSION=$(google-chrome --version | grep -oP '[0-9]+(\.[0-9]+)*' | head -1 | cut -d'.' -f1)
-          echo "Detected Chrome version: $CHROME_VERSION"
-          
-          # Get ChromeDriver version
-          echo "Getting ChromeDriver version..."
-          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build.json" | jq -r --arg CHROME_VERSION "$CHROME_VERSION" '.builds[$CHROME_VERSION] // empty')
-          
-          if [[ -z "$DRIVER_VERSION" ]]; then
-            echo "No exact ChromeDriver version found for Chrome $CHROME_VERSION, using latest stable"
-            DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE")
-          fi
-          
-          echo "Using ChromeDriver version: $DRIVER_VERSION"
-          
-          # Download and install ChromeDriver
-          echo "Downloading ChromeDriver..."
-          wget -q -N "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
-          
-          echo "Extracting ChromeDriver..."
-          unzip -q chromedriver-linux64.zip
-          
-          echo "Moving ChromeDriver to /usr/local/bin..."
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
-          
-          # Verify ChromeDriver installation
-          echo "Verifying ChromeDriver installation..."
-          chromedriver --version || echo "ChromeDriver installation failed"
-          
-          # Set up virtual display
-          echo "Setting up virtual display..."
-          sudo Xvfb :99 -ac &
-          echo "export DISPLAY=:99" >> $GITHUB_ENV
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
 
-      - name: Set ChromeDriver Path
+      - name: Setup ChromeDriver
+        uses: browser-actions/setup-chromedriver@v1
+        with:
+          chrome-version: stable
+
+      - name: Install xvfb
         run: |
-          echo "CHROMEDRIVER_PATH=/usr/local/bin/chromedriver" >> $GITHUB_ENV
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Start Xvfb
+        run: |
+          sudo Xvfb :99 -ac &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Verify Chrome and ChromeDriver
+        run: |
+          echo "Chrome version:"
+          chrome --version || google-chrome --version
+          echo "ChromeDriver version:"
+          chromedriver --version
 
       - name: Run Selenium tests with HTML report
         env:
-          CHROMEDRIVER_PATH: ${{ env.CHROMEDRIVER_PATH }}
           DISPLAY: :99
         run: |
           echo "Starting Selenium tests..."
-          pytest -s -v --html=report.html tests/test_google.py || echo "Tests failed"
+          pytest -s -v --html=report.html tests/test_google.py
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
@@ -109,7 +75,7 @@ jobs:
         run: |
           echo "Tests failed! Check the uploaded report for details."
           echo "Chrome version:"
-          google-chrome --version
+          chrome --version || google-chrome --version
           echo "ChromeDriver version:"
           chromedriver --version
           echo "Display variable:"
