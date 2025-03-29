@@ -33,10 +33,15 @@ jobs:
         with:
           chrome-version: stable
 
+      - name: Get Chrome version
+        run: |
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d'.' -f1)
+          echo "CHROME_VERSION=$CHROME_VERSION" >> $GITHUB_ENV
+
       - name: Setup ChromeDriver
-        uses: browser-actions/setup-chromedriver@v1
+        uses: nanasess/setup-chromedriver@v2
         with:
-          chrome-version: stable
+          chromedriver-version: ${{ env.CHROME_VERSION }}
 
       - name: Install xvfb
         run: |
@@ -51,7 +56,7 @@ jobs:
       - name: Verify Chrome and ChromeDriver
         run: |
           echo "Chrome version:"
-          chrome --version || google-chrome --version
+          google-chrome --version
           echo "ChromeDriver version:"
           chromedriver --version
 
@@ -75,7 +80,7 @@ jobs:
         run: |
           echo "Tests failed! Check the uploaded report for details."
           echo "Chrome version:"
-          chrome --version || google-chrome --version
+          google-chrome --version
           echo "ChromeDriver version:"
           chromedriver --version
           echo "Display variable:"
