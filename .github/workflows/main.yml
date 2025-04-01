@@ -86,23 +86,4 @@ jobs:
           google-chrome --version
           echo "ChromeDriver version:"
           chromedriver --version
-          echo "Display variable:"
-          echo $DISPLAY
-          exit 1
-
-      # ✅ Steps for hosting the HTML report on GitHub Pages
-      - name: Prepare report for GitHub Pages
-        if: always()
-        run: |
-          mkdir -p public
-          cp -r reports/* public/
-          ls -la public  # List the contents of the public folder
-
-      - name: Deploy Test Reports to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          publish_branch: gh-pages  # Make sure this is `gh-pages`
-          allow_empty_commit: true  # Allow empty commits in case no changes
+          echo "Display
