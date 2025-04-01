@@ -89,3 +89,16 @@ jobs:
           echo "Display variable:"
           echo $DISPLAY
           exit 1
+      - name: Deploy Test Reports to GitHub Pages
+        if: always()  # Run even if tests fail
+        run: |
+          mkdir -p public
+          cp -r reports/* public/
+      
+      - name: Publish Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()  # Ensures it runs even if tests fail
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          branch: gh-pages  # This branch will serve the report
