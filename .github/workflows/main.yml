@@ -11,7 +11,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # Grant write permissions to the repository (allowing push to gh-pages)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -102,6 +102,5 @@ jobs:
         if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages  # ✅ Use gh-pages instead of main
           publish_dir: ./public
-          allow_empty_commit: true
+          branch: gh-pages  # Serves the report via GitHub Pages
