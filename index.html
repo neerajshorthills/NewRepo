@@ -1,0 +1,7 @@
+      - name: Prepare report for GitHub Pages
+        if: always()
+        run: |
+          mkdir -p public
+          cp -r reports/* public/
+          # Create an index.html if needed for GitHub Pages
+          echo '<html><body><h1>Test Report</h1><iframe src="test_report.html" width="100%" height="100%"></iframe></body></html>' > public/index.html
