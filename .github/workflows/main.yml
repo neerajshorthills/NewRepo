@@ -102,6 +102,6 @@ jobs:
         if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: main  # ✅ Use main instead of gh-pages
+          publish_branch: gh-pages  # ✅ Use gh-pages instead of main
           publish_dir: ./public
           allow_empty_commit: true
