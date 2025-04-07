@@ -7,9 +7,8 @@ pipeline {
     }
 
     stages {
-        stage('Run Test Shell Script') {
+        stage('Run Tests') {
             steps {
-                echo "Executing shell script to run test cases..."
                 sh 'bash mail-test.sh'
             }
         }
@@ -17,19 +16,17 @@ pipeline {
 
     post {
         always {
-            echo "Sending email with HTML report..."
-
             emailext(
-                subject: "${currentBuild.currentResult}: ${env.JOB_NAME} Build #${env.BUILD_NUMBER}",
-                body: """
-                    <p>Hi Team,</p>
-                    <p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> has <b>${currentBuild.currentResult}</b>.</p>
-                    <p>Please find the test report attached.</p>
-                    <p>Thanks,<br/>Jenkins</p>
-                """,
                 to: 'neeraj.kumar2@shorthills.ai',
-                attachmentsPattern: 'report.html',
-                mimeType: 'text/html'
+                subject: "Build ${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                body: """
+                    <p>Hi,</p>
+                    <p>The build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> has <b>${currentBuild.currentResult}</b>.</p>
+                    <p>Attached is the test report.</p>
+                    <p>Regards,<br/>Jenkins</p>
+                """,
+                mimeType: 'text/html',
+                attachmentsPattern: 'report.html'
             )
         }
     }
