@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
 
 jobs:
   test:
@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest-html  # For HTML report generation
+          pip install pytest-html
 
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
@@ -72,7 +72,7 @@ jobs:
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4
-        if: always()  # Run even if tests fail
+        if: always()
         with:
           name: test-reports
           path: reports/
@@ -82,21 +82,14 @@ jobs:
         if: failure()
         run: |
           echo "Tests failed! Check the uploaded report for details."
-          echo "Chrome version:"
-          google-chrome --version
-          echo "ChromeDriver version:"
-          chromedriver --version
-          echo "Display variable:"
-          echo $DISPLAY
           exit 1
 
-      # ✅ Steps for hosting the HTML report on GitHub Pages
       - name: Prepare report for GitHub Pages
         if: always()
         run: |
           mkdir -p public
           cp -r reports/* public/
-          ls -la public  # List the contents of the public folder
+          ls -la public
 
       - name: Deploy Test Reports to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -104,5 +97,31 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          publish_branch: gh-pages  # Make sure this is `gh-pages`
-          allow_empty_commit: true  # Allow empty commits in case no changes
+          publish_branch: gh-pages
+          allow_empty_commit: true
+
+      # ✅ EMAIL STEP TO SEND REPORT
+      - name: Send test report via email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Selenium Test Report - ${{ github.repository }}
+          to: neeraj.euronics@gmail.com
+          from: ${{ secrets.EMAIL_USERNAME }}
+          secure: true
+          body: |
+            Hello,
+
+            Please find the attached Selenium test report.
+
+            Repository: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Commit: ${{ github.sha }}
+
+            Regards,
+            GitHub Actions
+          attachments: reports/test_report.html
